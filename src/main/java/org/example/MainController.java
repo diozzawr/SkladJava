@@ -28,7 +28,7 @@ public class MainController {
     @FXML private Spinner<Integer> issueAmountSpinner;
 
     private final ObservableList<Product> productData = FXCollections.observableArrayList();
-    private final String FILE_NAME = "products.txt"; // Имя файла для хранения
+    private final String FILE_NAME = "products.txt";
 
     @FXML
     public void initialize() {
@@ -38,7 +38,6 @@ public class MainController {
 
         issueAmountSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1000, 1));
 
-        // Загружаем данные из файла при запуске
         loadFromFile();
 
         FilteredList<Product> filteredData = new FilteredList<>(productData, p -> true);
@@ -48,7 +47,6 @@ public class MainController {
         productTable.setItems(filteredData);
     }
 
-    // --- ЛОГИКА ФАЙЛОВ ---
 
     private void saveToFile() {
         try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
@@ -64,7 +62,6 @@ public class MainController {
     private void loadFromFile() {
         File file = new File(FILE_NAME);
         if (!file.exists()) {
-            // Если файла нет, добавляем начальные данные (твой список)
             addDefaultProducts();
             saveToFile();
             return;
@@ -104,7 +101,6 @@ public class MainController {
         );
     }
 
-    // --- ОБНОВЛЕННЫЕ МЕТОДЫ С АВТОСОХРАНЕНИЕМ ---
 
     @FXML
     private void handleIssue() {
@@ -118,7 +114,7 @@ public class MainController {
         if (selected.getCount() >= amount) {
             selected.setCount(selected.getCount() - amount);
             productTable.refresh();
-            saveToFile(); // Сохраняем изменение остатка
+            saveToFile();
             showAlert("Склад", "Выдано: " + amount + " ед. Осталось: " + selected.getCount());
         } else {
             showAlert("Ошибка", "Недостаточно товара на складе!");
@@ -130,7 +126,7 @@ public class MainController {
         if (validateAdminInput()) {
             productData.add(new Product(nameInput.getText(),
                     Integer.parseInt(countInput.getText()), Double.parseDouble(priceInput.getText())));
-            saveToFile(); // Сохраняем новый товар
+            saveToFile();
             nameInput.clear(); countInput.clear(); priceInput.clear();
         }
     }
@@ -144,7 +140,7 @@ public class MainController {
                 if (newPrice > 0) {
                     selected.setPrice(newPrice);
                     productTable.refresh();
-                    saveToFile(); // Сохраняем новую цену
+                    saveToFile();
                 }
             } catch (Exception e) { showAlert("Ошибка", "Введите число"); }
         }
@@ -155,11 +151,10 @@ public class MainController {
         Product selected = productTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             productData.remove(selected);
-            saveToFile(); // Сохраняем удаление
+            saveToFile();
         }
     }
 
-    // Остальные методы (handleLogin, loginAsUser, validateAdminInput, showAlert) без изменений
     @FXML
     private void handleLogin() {
         if ("admin".equals(loginField.getText()) && "qwerty".equals(passwordField.getText())) {

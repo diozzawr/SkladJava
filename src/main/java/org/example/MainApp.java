@@ -10,7 +10,6 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Загружаем твой FXML
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/org/example/main-view.fxml"));
         Parent root = fxmlLoader.load();
 
