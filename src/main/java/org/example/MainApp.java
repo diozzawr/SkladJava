@@ -12,75 +12,102 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
+    // Выносим список данных наверх, чтобы все методы его видели
+    private final ObservableList<Product> data = FXCollections.observableArrayList(
+            new Product("iPhone 15 Pro", 10, 999.0),
+            new Product("MacBook Air M2", 5, 1199.0)
+    );
+
     @Override
     public void start(Stage stage) {
-        // --- 1. БОКОВОЕ МЕНЮ (Sidebar) ---
-        VBox sidebar = new VBox(15);
-        sidebar.setPadding(new Insets(20));
-        sidebar.setPrefWidth(200);
-        sidebar.setStyle("-fx-background-color: #2c3e50;");
-
-        Label menuTitle = new Label("СКЛАД v1.1");
-        menuTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-
-        sidebar.getChildren().addAll(menuTitle, new Separator(),
-                createMenuButton("📦 Склад"),
-                createMenuButton("📜 Заказы"),
-                createMenuButton("⚙️ Настройки"));
-
-        // --- 2. ВЕРХНЯЯ ПАНЕЛЬ (Header) ---
-        HBox header = new HBox();
-        header.setPadding(new Insets(15, 20, 15, 20));
-        header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
-
-        TextField searchField = new TextField();
-        searchField.setPromptText("Поиск товара...");
-        searchField.setPrefWidth(300);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(searchField, spacer, new Label("Администратор: Akbar"));
-
-        // --- 3. ТАБЛИЦА (Контент от напарника) ---
+        // --- 1. ТАБЛИЦА ---
         TableView<Product> table = new TableView<>();
+        table.setItems(data);
 
         TableColumn<Product, String> nameCol = new TableColumn<>("Наименование");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // Берет из getName()
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Product, Integer> countCol = new TableColumn<>("Кол-во");
-        countCol.setCellValueFactory(new PropertyValueFactory<>("count")); // Берет из getCount() - ВАЖНО
+        countCol.setCellValueFactory(new PropertyValueFactory<>("count"));
 
         TableColumn<Product, Double> priceCol = new TableColumn<>("Цена ($)");
-        priceCol.setCellValueFactory(new PropertyValueFactory<>("price")); // Берет из getPrice()
+        priceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
 
         table.getColumns().addAll(nameCol, countCol, priceCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        ObservableList<Product> data = FXCollections.observableArrayList(
-                new Product("iPhone 15 Pro", 10, 999.0),
-                new Product("MacBook Air M2", 5, 1199.0),
-                new Product("AirPods Pro 2", 25, 249.0)
-        );
-        table.setItems(data);
+        // --- 2. ПАНЕЛЬ ВВОДА (Нижняя часть) ---
+        TextField nameInput = new TextField();
+        nameInput.setPromptText("Название");
 
-        // --- ГЛАВНАЯ КОМПОНОВКА ---
-        BorderPane mainLayout = new BorderPane();
-        mainLayout.setLeft(sidebar);
-        mainLayout.setTop(header);
-        mainLayout.setCenter(new StackPane(table)); // Таблица в центре
-        StackPane.setMargin(table, new Insets(20));
+        TextField countInput = new TextField();
+        countInput.setPromptText("Кол-во");
+        countInput.setPrefWidth(70);
 
-        Scene scene = new Scene(mainLayout, 1000, 700);
-        stage.setTitle("Warehouse Management System");
+        TextField priceInput = new TextField();
+        priceInput.setPromptText("Цена");
+        priceInput.setPrefWidth(70);
+
+        Button addButton = new Button("➕ Добавить");
+        Button deleteButton = new Button("🗑 Удалить");
+
+        // --- ЛОГИКА КНОПОК ---
+
+        // Добавление товара
+        addButton.setOnAction(e -> {
+            try {
+                String name = nameInput.getText();
+                int count = Integer.parseInt(countInput.getText());
+                double price = Double.parseDouble(priceInput.getText());
+
+                if (!name.isEmpty()) {
+                    data.add(new Product(name, count, price));
+                    nameInput.clear();
+                    countInput.clear();
+                    priceInput.clear();
+                }
+            } catch (NumberFormatException ex) {
+                // Если ввели буквы вместо цифр
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Вводи цифры в поля Кол-во и Цена!");
+                alert.show();
+            }
+        });
+
+        // Удаление выбранного товара
+        deleteButton.setOnAction(e -> {
+            Product selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                data.remove(selected);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Сначала выбери товар в таблице!");
+                alert.show();
+            }
+        });
+
+        HBox inputPanel = new HBox(10, nameInput, countInput, priceInput, addButton, deleteButton);
+        inputPanel.setPadding(new Insets(10));
+
+        // --- КОМПОНОВКА (Layout) ---
+        VBox centerArea = new VBox(15, table, inputPanel);
+        centerArea.setPadding(new Insets(20));
+
+        // Боковое меню (как в прошлом шаге)
+        VBox sidebar = new VBox(15);
+        sidebar.setPadding(new Insets(20));
+        sidebar.setPrefWidth(180);
+        sidebar.setStyle("-fx-background-color: #2c3e50;");
+        Label title = new Label("SKLAD ADMIN");
+        title.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        sidebar.getChildren().addAll(title, new Separator());
+
+        BorderPane root = new BorderPane();
+        root.setLeft(sidebar);
+        root.setCenter(centerArea);
+
+        Scene scene = new Scene(root, 900, 600);
+        stage.setTitle("Warehouse System v1.2");
         stage.setScene(scene);
         stage.show();
-    }
-
-    private Button createMenuButton(String text) {
-        Button btn = new Button(text);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-cursor: hand;");
-        return btn;
     }
 
     public static void main(String[] args) { launch(args); }
