@@ -1,10 +1,12 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -16,16 +18,15 @@ public class MainApp extends Application {
         VBox sidebar = new VBox(15);
         sidebar.setPadding(new Insets(20));
         sidebar.setPrefWidth(200);
-        sidebar.setStyle("-fx-background-color: #2c3e50;"); // Темный цвет
+        sidebar.setStyle("-fx-background-color: #2c3e50;");
 
         Label menuTitle = new Label("СКЛАД v1.1");
         menuTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Button btnInventory = createMenuButton("📦 Склад");
-        Button btnOrders = createMenuButton("📜 Заказы");
-        Button btnSettings = createMenuButton("⚙️ Настройки");
-
-        sidebar.getChildren().addAll(menuTitle, new Separator(), btnInventory, btnOrders, btnSettings);
+        sidebar.getChildren().addAll(menuTitle, new Separator(),
+                createMenuButton("📦 Склад"),
+                createMenuButton("📜 Заказы"),
+                createMenuButton("⚙️ Настройки"));
 
         // --- 2. ВЕРХНЯЯ ПАНЕЛЬ (Header) ---
         HBox header = new HBox();
@@ -38,23 +39,36 @@ public class MainApp extends Application {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+        header.getChildren().addAll(searchField, spacer, new Label("Администратор: Akbar"));
 
-        Label userLabel = new Label("Администратор: Akbar");
-        userLabel.setStyle("-fx-font-weight: bold;");
+        // --- 3. ТАБЛИЦА (Контент от напарника) ---
+        TableView<Product> table = new TableView<>();
 
-        header.getChildren().addAll(searchField, spacer, userLabel);
+        TableColumn<Product, String> nameCol = new TableColumn<>("Наименование");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // Берет из getName()
 
-        // --- 3. ЦЕНТРАЛЬНАЯ ЧАСТЬ (Контент) ---
-        // Сюда мы потом вставим таблицу, которую делает твой напарник
-        StackPane contentArea = new StackPane();
-        contentArea.setPadding(new Insets(20));
-        contentArea.getChildren().add(new Label("Тут будет таблица товаров..."));
+        TableColumn<Product, Integer> countCol = new TableColumn<>("Кол-во");
+        countCol.setCellValueFactory(new PropertyValueFactory<>("count")); // Берет из getCount() - ВАЖНО
+
+        TableColumn<Product, Double> priceCol = new TableColumn<>("Цена ($)");
+        priceCol.setCellValueFactory(new PropertyValueFactory<>("price")); // Берет из getPrice()
+
+        table.getColumns().addAll(nameCol, countCol, priceCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        ObservableList<Product> data = FXCollections.observableArrayList(
+                new Product("iPhone 15 Pro", 10, 999.0),
+                new Product("MacBook Air M2", 5, 1199.0),
+                new Product("AirPods Pro 2", 25, 249.0)
+        );
+        table.setItems(data);
 
         // --- ГЛАВНАЯ КОМПОНОВКА ---
         BorderPane mainLayout = new BorderPane();
-        mainLayout.setLeft(sidebar);   // Меню слева
-        mainLayout.setTop(header);     // Шапка сверху
-        mainLayout.setCenter(contentArea); // Контент в центре
+        mainLayout.setLeft(sidebar);
+        mainLayout.setTop(header);
+        mainLayout.setCenter(new StackPane(table)); // Таблица в центре
+        StackPane.setMargin(table, new Insets(20));
 
         Scene scene = new Scene(mainLayout, 1000, 700);
         stage.setTitle("Warehouse Management System");
@@ -62,20 +76,12 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    // Вспомогательный метод для красивых кнопок
     private Button createMenuButton(String text) {
         Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px; -fx-cursor: hand;");
-
-        // Эффект при наведении
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;"));
-
+        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-cursor: hand;");
         return btn;
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    public static void main(String[] args) { launch(args); }
 }
