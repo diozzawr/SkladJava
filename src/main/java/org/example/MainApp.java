@@ -11,10 +11,10 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label titleLabel = new Label("Warehouse System");
+        Label titleLabel = new Label("Кенчик краш");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        Label statusLabel = new Label("Статус: Система готова к работе ✅");
+        Label statusLabel = new Label("Кончик чорт");
         statusLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #27ae60;");
 
         VBox root = new VBox(20, titleLabel, statusLabel);
